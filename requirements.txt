@@ -1,0 +1,5 @@
+flask
+pocket
+oauth2
+requests
+pymongo

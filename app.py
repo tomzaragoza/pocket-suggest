@@ -1,0 +1,58 @@
+from flask import *
+from pprint import pprint as pretty
+from pymongo import MongoClient
+import json
+import pocket
+import requests
+
+# consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
+# access_token = ''
+
+# params = {'consumer_key': consumer_key, 'redirect_uri': 'localhost:5000/authsuccess'}
+# r = requests.post('https://getpocket.com/v3/oauth/request')
+# code = str(r['code'])
+
+#  = pocket.Pocket(consumer_key, access_token)
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def hello_world():
+	return render_template('index.html')
+
+@app.route('/authenticate')
+def authenticate():
+	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
+	redirect_uri = 'http://localhost:5000/dashboard'
+
+
+	headers = {'X-Accept': 'application/json'}
+	params = {'consumer_key': consumer_key, 'redirect_uri': redirect_uri}
+	r = requests.post('https://getpocket.com/v3/oauth/request', data=params, headers=headers)
+	request_token = json.loads(r.content)['code']
+	print request_token
+
+	# get_request_token doesn't work for some reason
+	# request_token = Pocket.get_request_token(consumer_key=consumer_key, redirect_uri=redirect_uri)
+	print "request token got", request_token
+	redirect_uri += '?request_token={0}'.format(request_token)
+	auth_url = pocket.Pocket.get_auth_url(code=request_token, redirect_uri=redirect_uri)
+	print "auth url got", auth_url
+	return redirect(auth_url)
+
+
+@app.route('/dashboard')
+def dashboard():
+	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
+	request_token = request.args.get('request_token')
+
+	access_token = pocket.Pocket.get_access_token(consumer_key=consumer_key, code=request_token)
+	pocket_instance = pocket.Pocket(consumer_key, access_token)
+	g = pocket_instance.get()
+	pretty(g)
+	return render_template('dashboard.html', username="tom") #"Success " + request_token
+
+
+if __name__ == '__main__':
+	app.run(debug=True)

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %} Main {% endblock %}
+
+{% block content %}
+<h1> What to read in your Pocket Queue? </h1>
+<br>
+<p>
+	<form action='/authenticate'>
+		<button class='btn btn-primary' href='/authenticate'>Authenticate with Pocket</button>
+	</form>
+<p>
+{% endblock %}
