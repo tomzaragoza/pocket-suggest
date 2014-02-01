@@ -18,7 +18,7 @@ def hello_world():
 @app.route('/authenticate')
 def authenticate():
 	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
-	redirect_uri = 'http://goesbackto.biz/dashboard'
+	redirect_uri = 'http://localhost:5000/dashboard'
 
 	headers = {'X-Accept': 'application/json'}
 	params = {'consumer_key': consumer_key, 'redirect_uri': redirect_uri}
@@ -47,7 +47,6 @@ def dashboard():
 	pocket_instance = pocket.Pocket(consumer_key, access_token)
 
 	queue = []
-	archived = []
 	
 	readlist = pocket_instance.get()#[0]['list']
 	if readlist is not None:
@@ -76,7 +75,7 @@ def dashboard():
 		else:
 			collection.update({'title': title}, doc, upsert=True)
 
-	return render_template('dashboard.html', username=username, queue=queue, archived=archived, request_token=request_token)
+	return render_template('dashboard.html', username=username, queue=queue, request_token=request_token)
 
 @app.route('/suggest')
 def suggest():
