@@ -20,19 +20,16 @@ def authenticate():
 	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
 	redirect_uri = 'http://localhost:5000/dashboard'
 
-
 	headers = {'X-Accept': 'application/json'}
 	params = {'consumer_key': consumer_key, 'redirect_uri': redirect_uri}
 	r = requests.post('https://getpocket.com/v3/oauth/request', data=params, headers=headers)
 	request_token = json.loads(r.content)['code']
-	print request_token
 
 	# get_request_token doesn't work for some reason
 	# request_token = Pocket.get_request_token(consumer_key=consumer_key, redirect_uri=redirect_uri)
-	print "request token got", request_token
 	redirect_uri += '?request_token={0}'.format(request_token)
 	auth_url = pocket.Pocket.get_auth_url(code=request_token, redirect_uri=redirect_uri)
-	print "auth url got", auth_url
+
 	return redirect(auth_url)
 
 
@@ -65,7 +62,10 @@ def dashboard():
 		doc = {'title': title, 'readtime': readtime, 'url': url}
 		queue.append(doc)
 
-		collection.insert(doc, upsert=True)
+		if not collection.find_one({'title': title}):
+			collection.insert(doc)
+		else:
+			collection.update({'title': title}, doc, upsert=True)
 
 	return render_template('dashboard.html', username="tom", queue=queue, archived=archived)
 
