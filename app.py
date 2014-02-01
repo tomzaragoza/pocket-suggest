@@ -7,6 +7,9 @@ import requests
 
 app = Flask(__name__)
 
+mongo = MongoClient()
+db = mongo['pocket-suggest']
+collection = db['suggest-read-data']
 
 @app.route('/')
 def hello_world():
@@ -38,10 +41,12 @@ def dashboard():
 	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
 	request_token = request.args.get('request_token')
 
+	# username = pocket.Pocket.get_credentials(consumer_key=consumer_key, code=request_token)
 	access_token = pocket.Pocket.get_access_token(consumer_key=consumer_key, code=request_token)
 	pocket_instance = pocket.Pocket(consumer_key, access_token)
 
 	queue = []
+	archived = []
 	
 	readlist = pocket_instance.get()[0]['list']
 
@@ -50,12 +55,21 @@ def dashboard():
 		title = link_item['resolved_title']
 		readtime = round(int(link_item['word_count'])/ 200.0)
 		resolved_id = link_item['resolved_id']
-		url = 'https://getpocket.com/a/read/{0}'.format(resolved_id) #link_item['resolved_url']
-		queue.append({'title': title, 'readtime': readtime, 'url': url})
+		url = 'https://getpocket.com/a/read/{0}'.format(resolved_id)
 
+		doc = {'title': title, 'readtime': readtime, 'url': url}
+		queue.append(doc)
+
+		collection.insert(doc, upsert=True)
+
+
+	print "This is the queue"
 	print queue
-	return render_template('dashboard.html', username="tom", queue=queue) #"Success " + request_token
+	return render_template('dashboard.html', username="tom", queue=queue, archived=archived)
 
+@app.route('/suggest')
+def suggest():
+	return "suggest"
 
 if __name__ == '__main__':
 	app.run(debug=True)
