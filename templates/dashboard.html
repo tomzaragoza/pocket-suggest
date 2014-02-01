@@ -6,11 +6,15 @@
 <h1>Hey, {{username}}!</h1>
 
 <div id="article-list" class="pull-left">
-	<p> article list </p>
+	<h4> Your Queue </h4>
+	{% for item in queue %}
+		<p><a href="{{item['url']}}" target="_blank">{{item['title']}}</a> - {{item['readtime']}} min read.</p>
+	{% endfor %}
 </div>
 
 <div id="suggest-reads" class="pull-right">
-	<p> suggest reads </p>
+	<h4> Suggest reads </h4>
+	<p> I have <input maxlength="3" size="3"></input> minutes. <button class='btn btn-'>what should I read?</button></p>
 </div>
 
 {% endblock %}

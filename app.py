@@ -5,15 +5,6 @@ import json
 import pocket
 import requests
 
-# consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
-# access_token = ''
-
-# params = {'consumer_key': consumer_key, 'redirect_uri': 'localhost:5000/authsuccess'}
-# r = requests.post('https://getpocket.com/v3/oauth/request')
-# code = str(r['code'])
-
-#  = pocket.Pocket(consumer_key, access_token)
-
 app = Flask(__name__)
 
 
@@ -49,9 +40,21 @@ def dashboard():
 
 	access_token = pocket.Pocket.get_access_token(consumer_key=consumer_key, code=request_token)
 	pocket_instance = pocket.Pocket(consumer_key, access_token)
-	g = pocket_instance.get()
-	pretty(g)
-	return render_template('dashboard.html', username="tom") #"Success " + request_token
+
+	queue = []
+	
+	readlist = pocket_instance.get()[0]['list']
+
+	for l in readlist.iterkeys():
+		link_item = readlist[l]
+		title = link_item['resolved_title']
+		readtime = round(int(link_item['word_count'])/ 200.0)
+		resolved_id = link_item['resolved_id']
+		url = 'https://getpocket.com/a/read/{0}'.format(resolved_id) #link_item['resolved_url']
+		queue.append({'title': title, 'readtime': readtime, 'url': url})
+
+	print queue
+	return render_template('dashboard.html', username="tom", queue=queue) #"Success " + request_token
 
 
 if __name__ == '__main__':
