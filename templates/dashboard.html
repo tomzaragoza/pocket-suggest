@@ -3,16 +3,19 @@
 {% block title %} Main {% endblock %}
 
 {% block content %}
-<h1>Hey, {{username}}!</h1>
+<div class="header">
+	<h1>Hey, {{username}}!</h1>
+</div>
 
-<div id="article-list" class="pull-left">
+<div id="article-list">
 	<h4> Your Queue </h4>
 	{% for item in queue %}
 		<p><a href="{{item['url']}}" target="_blank">{{item['title']}}</a> - {{item['readtime']}} min read.</p>
 	{% endfor %}
 </div>
 
-<div id="suggest-reads" class="pull-right">
+<br>
+<div id="suggest-reads">
 	<h4> Suggest reads </h4>
 	<p> I have <input maxlength="3" size="3"></input> minutes. <button class='btn btn-default'>what should I read?</button></p>
 </div>
