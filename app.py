@@ -55,26 +55,26 @@ def dashboard():
 	if readlist is not None:
 		readlist = readlist['list']
 
-	if isinstance(readlist, dict):
-		for l in readlist.iterkeys():
-			link_item = readlist[l]
-			if 'given_title' in link_item:
-				title = link_item['given_title']
-			elif 'resolved_title' in link_item:
-				title = link_item['resolved_title']
-			else:
-				title = ''
-			readtime = round(int(link_item['word_count'])/ 200.0) if 'word_count' in link_item else 0.0
-			resolved_id = link_item['resolved_id'] if 'resolved_id' in link_item else link_item['item_id']
-			url = 'https://getpocket.com/a/read/{0}'.format(resolved_id)
 
-			doc = {'title': title, 'readtime': readtime, 'url': url}
-			queue.append(doc)
+	for l in readlist.iterkeys():
+		link_item = readlist[l]
+		if 'given_title' in link_item:
+			title = link_item['given_title']
+		elif 'resolved_title' in link_item:
+			title = link_item['resolved_title']
+		else:
+			title = ''
+		readtime = round(int(link_item['word_count'])/ 200.0) if 'word_count' in link_item else 0.0
+		resolved_id = link_item['resolved_id'] if 'resolved_id' in link_item else link_item['item_id']
+		url = 'https://getpocket.com/a/read/{0}'.format(resolved_id)
 
-			if not collection.find_one({'title': title}):
-				collection.insert(doc)
-			else:
-				collection.update({'title': title}, doc, upsert=True)
+		doc = {'title': title, 'readtime': readtime, 'url': url}
+		queue.append(doc)
+
+		if not collection.find_one({'title': title}):
+			collection.insert(doc)
+		else:
+			collection.update({'title': title}, doc, upsert=True)
 
 	return render_template('dashboard.html', username=username, queue=queue, archived=archived, request_token=request_token)
 
