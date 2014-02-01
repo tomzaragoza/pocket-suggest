@@ -18,7 +18,7 @@ def hello_world():
 @app.route('/authenticate')
 def authenticate():
 	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
-	redirect_uri = 'http://localhost:5000/dashboard'
+	redirect_uri = 'http://goesbackto.biz/dashboard'
 
 	headers = {'X-Accept': 'application/json'}
 	params = {'consumer_key': consumer_key, 'redirect_uri': redirect_uri}
