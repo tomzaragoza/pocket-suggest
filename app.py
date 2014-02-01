@@ -38,8 +38,12 @@ def dashboard():
 	consumer_key = '23288-42e6b34a0926a23e7bb4ba98'
 	request_token = request.args.get('request_token')
 
+	headers = {'X-Accept': 'application/json'}
+	params = {'consumer_key': consumer_key, 'code': request_token}
+	r = json.loads(requests.post('https://getpocket.com/v3/oauth/authorize', data=params, headers=headers).content)
 	# username = pocket.Pocket.get_credentials(consumer_key=consumer_key, code=request_token)
-	access_token = pocket.Pocket.get_access_token(consumer_key=consumer_key, code=request_token)
+	access_token = r['access_token']#pocket.Pocket.get_access_token(consumer_key=consumer_key, code=request_token)
+	username = r['username']
 	pocket_instance = pocket.Pocket(consumer_key, access_token)
 
 	queue = []
@@ -67,7 +71,7 @@ def dashboard():
 		else:
 			collection.update({'title': title}, doc, upsert=True)
 
-	return render_template('dashboard.html', username="tom", queue=queue, archived=archived, request_token=request_token)
+	return render_template('dashboard.html', username=username, queue=queue, archived=archived, request_token=request_token)
 
 @app.route('/suggest')
 def suggest():
