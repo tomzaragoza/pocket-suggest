@@ -67,13 +67,14 @@ def dashboard():
 		else:
 			collection.update({'title': title}, doc, upsert=True)
 
-	return render_template('dashboard.html', username="tom", queue=queue, archived=archived)
+	return render_template('dashboard.html', username="tom", queue=queue, archived=archived, request_token=request_token)
 
 @app.route('/suggest')
 def suggest():
 	minutes = request.args.get('minutes')
 
-	return "suggest {0}".format(minutes)
+	suggest_list = list(collection.find({'readtime': {'$lte': round(float(minutes))} }).sort('readtime', -1).limit(6) )
+	return render_template('suggest.html', suggested=suggest_list)
 
 if __name__ == '__main__':
 	app.run(debug=True)
