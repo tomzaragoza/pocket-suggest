@@ -44,7 +44,7 @@ def dashboard():
 	username = user_credentials['username']
 
 	headers = {'X-Accept': 'application/json'}
-	data = {'consumer_key': consumer_key, 'access_token': access_token}
+	data = {'consumer_key': consumer_key, 'access_token': access_token, 'state': 'all'}
 	r = json.loads(requests.post('https://getpocket.com/v3/get', data=data, headers=headers).content)
 
 	queue = []
@@ -52,20 +52,28 @@ def dashboard():
 	readlist = r['list']
 
 	for l in readlist.iterkeys():
+
 		link_item = readlist[l]
+		status = int(link_item['status'])
+
 		if 'given_title' in link_item:
 			title = link_item['given_title']
 		elif 'resolved_title' in link_item:
 			title = link_item['resolved_title']
 		else:
 			title = ''
+
 		readtime = round(int(link_item['word_count'])/ 200.0) if 'word_count' in link_item else 0.0
 		resolved_id = link_item['resolved_id'] if 'resolved_id' in link_item else link_item['item_id']
 		url = 'https://getpocket.com/a/read/{0}'.format(resolved_id)
 
-		doc = {'title': title, 'readtime': readtime, 'url': url}
-		queue.append(doc)
+		doc = {'title': title, 'readtime': readtime, 'url': url, 'status': status}
 
+		if status == 0: # unread
+			queue.append(doc)
+
+		# update it in mongoDB if it's read / unread 
+		# so that it will be used appropriately in /suggest
 		if not collection.find_one({'title': title}):
 			collection.insert(doc)
 		else:
@@ -75,10 +83,19 @@ def dashboard():
 
 @app.route('/suggest')
 def suggest():
-	minutes = request.args.get('minutes')
+	minutes = round(float(request.args.get('minutes')))
 
-	suggest_list = list(collection.find({'readtime': {'$lte': round(float(minutes))} }).sort('readtime', -1).limit(6) )
-	return render_template('suggest.html', suggested=suggest_list)
+	suggested_reads = []
+	suggest_list = list(collection.find({'readtime': {'$lte': minutes}, 'status': 0 }).sort('readtime', -1))
+
+	for suggestion in suggest_list:
+		if minutes > 0.0:
+			if minutes - suggestion['readtime'] >= 0:
+				suggested_reads.append(suggestion)
+				minutes -= suggestion['readtime']
+
+
+	return render_template('suggest.html', suggested=suggested_reads)
 
 if __name__ == '__main__':
 	app.run(debug=True)
