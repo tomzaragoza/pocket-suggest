@@ -11,34 +11,42 @@ mongo = MongoClient()
 db = mongo['pocket-suggest']
 collection = db['suggest-read-data']
 
+consumer_key = '23364-ac9c861354d534ddf0c31dff'
+redirect_uri = 'http://localhost:5000/dashboard'
+
 @app.route('/')
 def hello_world():
 	return render_template('index.html')
 
-@app.route('/authenticate')
-def authenticate():
-	consumer_key = '23364-ac9c861354d534ddf0c31dff'
-	redirect_uri = 'http://goesbackto.biz/dashboard'
 
+
+def get_request_token(consumer_key, redirect_uri):
 	headers = {'X-Accept': 'application/json'}
 	params = {'consumer_key': consumer_key, 'redirect_uri': redirect_uri}
 	r = requests.post('https://getpocket.com/v3/oauth/request', data=params, headers=headers)
 	request_token = json.loads(r.content)['code']
+	
+	return request_token
 
-	# get_request_token doesn't work for some reason
-	# request_token = Pocket.get_request_token(consumer_key=consumer_key, redirect_uri=redirect_uri)
-	redirect_uri += '?request_token={0}'.format(request_token)
-	auth_url = pocket.Pocket.get_auth_url(code=request_token, redirect_uri=redirect_uri)
+@app.route('/authenticate')
+def authenticate():
+
+	request_token = get_request_token(consumer_key, redirect_uri)
+	uri = redirect_uri + '?request_token={0}'.format(request_token)
+	auth_url = pocket.Pocket.get_auth_url(code=request_token, redirect_uri=uri)
 
 	return redirect(auth_url)
 
-
 @app.route('/dashboard')
 def dashboard():
-	consumer_key = '23364-ac9c861354d534ddf0c31dff'
+
 	request_token = str(request.args.get('request_token'))
 
-	user_credentials = pocket.Pocket.get_credentials(consumer_key=consumer_key, code=request_token)
+	try:
+		user_credentials = pocket.Pocket.get_credentials(consumer_key=consumer_key, code=request_token)
+	except:
+		# RateLimitException
+		return redirect(url_for('authenticate'))
 
 	access_token = user_credentials['access_token']
 	username = user_credentials['username']
