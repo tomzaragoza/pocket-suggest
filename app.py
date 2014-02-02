@@ -12,7 +12,7 @@ db = mongo['pocket-suggest']
 collection = db['suggest-read-data']
 
 consumer_key = '23364-ac9c861354d534ddf0c31dff'
-redirect_uri = 'http://localhost:5000/dashboard'
+redirect_uri = 'http://goesbackto.biz/dashboard'
 
 @app.route('/')
 def hello_world():
